@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env
+.env.local
+*.tsbuildinfo
+
+# Not committed on purpose: a macOS-generated lock can omit Linux-only optional
+# binaries (SWC/rollup/esbuild), breaking `npm ci` on Vercel's Linux builders.
+# Letting the deploy run a fresh install resolves the correct platform binaries.
+package-lock.json
