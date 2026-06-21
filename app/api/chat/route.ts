@@ -7,22 +7,26 @@ import type { AgentConfig } from '@open-multi-agent/core'
 // heavier topics. https://vercel.com/docs/functions/configuring-functions/duration
 export const maxDuration = 60
 
-// --- DeepSeek via OpenAI-compatible API ---
-const DEEPSEEK_BASE_URL = 'https://api.deepseek.com'
-const DEEPSEEK_MODEL = 'deepseek-v4-flash'
+// --- Google Gemini via its OpenAI-compatible API ---
+// Gemini is reachable from every Vercel region, and both OMA (native
+// OpenAI-compatible provider) and the AI SDK call the same endpoint.
+// `*-latest` tracks Google's current flash model, so the template keeps working
+// even after a specific version (e.g. gemini-2.0-flash) is retired.
+const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai'
+const GEMINI_MODEL = 'gemini-flash-latest'
 
-const deepseek = createOpenAICompatible({
-  name: 'deepseek',
-  baseURL: `${DEEPSEEK_BASE_URL}/v1`,
-  apiKey: process.env.DEEPSEEK_API_KEY,
+const gemini = createOpenAICompatible({
+  name: 'gemini',
+  baseURL: GEMINI_BASE_URL,
+  apiKey: process.env.GEMINI_API_KEY,
 })
 
 const researcher: AgentConfig = {
   name: 'researcher',
-  model: DEEPSEEK_MODEL,
+  model: GEMINI_MODEL,
   provider: 'openai',
-  baseURL: DEEPSEEK_BASE_URL,
-  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: GEMINI_BASE_URL,
+  apiKey: process.env.GEMINI_API_KEY,
   systemPrompt: `You are a research specialist. Given a topic, provide thorough, factual research
 with key findings, relevant data points, and important context.
 Be concise but comprehensive. Output structured notes, not prose.`,
@@ -32,10 +36,10 @@ Be concise but comprehensive. Output structured notes, not prose.`,
 
 const writer: AgentConfig = {
   name: 'writer',
-  model: DEEPSEEK_MODEL,
+  model: GEMINI_MODEL,
   provider: 'openai',
-  baseURL: DEEPSEEK_BASE_URL,
-  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: GEMINI_BASE_URL,
+  apiKey: process.env.GEMINI_API_KEY,
   systemPrompt: `You are an expert writer. Using research from team members (available in shared memory),
 write a well-structured, engaging article with clear headings and concise paragraphs.
 Do not repeat raw research — synthesize it into readable prose.`,
@@ -56,10 +60,10 @@ export async function POST(req: Request) {
 
   // --- Phase 1: OMA multi-agent orchestration ---
   const orchestrator = new OpenMultiAgent({
-    defaultModel: DEEPSEEK_MODEL,
+    defaultModel: GEMINI_MODEL,
     defaultProvider: 'openai',
-    defaultBaseURL: DEEPSEEK_BASE_URL,
-    defaultApiKey: process.env.DEEPSEEK_API_KEY,
+    defaultBaseURL: GEMINI_BASE_URL,
+    defaultApiKey: process.env.GEMINI_API_KEY,
   })
 
   const team = orchestrator.createTeam('research-writing', {
@@ -77,7 +81,7 @@ export async function POST(req: Request) {
 
   // --- Phase 2: Stream result via Vercel AI SDK ---
   const result = streamText({
-    model: deepseek(DEEPSEEK_MODEL),
+    model: gemini(GEMINI_MODEL),
     system: `You are presenting research from a multi-agent team (researcher + writer).
 The team has already done the work. Your only job is to relay their output to the user
 in a well-formatted way. Keep the content faithful to the team output below.
