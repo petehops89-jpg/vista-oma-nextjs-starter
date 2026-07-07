@@ -4,14 +4,19 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postinstall": "powershell -ExecutionPolicy Bypass -File scripts/copy-core-engine.ps1"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.41",
     "@ai-sdk/react": "^3.0.0",
     "@open-multi-agent/core": "1.8.0",
     "ai": "^6.0.0",
+    "core-engine": "file:../VISTAMATIONS/core_engine",
+    "dotenv": "^17.4.2",
+    "google-auth-library": "^10.9.0",
     "next": "^16.0.0",
+    "openai": "^6.45.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^9.0.0"
